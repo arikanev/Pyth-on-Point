@@ -1,2 +1,4 @@
-let name = "Ari"
-define greet(name) then print "Hello " + name
+define greet(name,bug) then print bug + name
+let arg1 = "name"
+let arg2 = "bug"
+greet(arg1,arg2)

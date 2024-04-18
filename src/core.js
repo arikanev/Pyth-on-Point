@@ -9,8 +9,8 @@ export function program(statements) {
   return { kind: "Program", statements };
 }
 
-export function fun(name) {
-  return { kind: "Function", name};
+export function fun(name,parameters) {
+  return { kind: "Function", name, parameters};
 }
 
 export function functionDeclaration(fun, params, body) {

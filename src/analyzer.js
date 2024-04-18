@@ -291,20 +291,21 @@ export default function analyze(match) {
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
+        console.log(fun)
         mustHaveCorrectArgumentCount(
           argReps.length,
-          fun.type.paramTypes.length,
+          fun.parameters.length,
           {
             at: args,
           }
         );
-        argReps.forEach((arg, i) => {
-          mustBeAssignable(
-            arg,
-            { toType: fun.type.paramTypes[i] },
-            { at: args }
-          );
-        });
+        // argReps.forEach((arg, i) => {
+        //   mustBeAssignable(
+        //     arg,
+        //     { toType: fun.parameters[i] },
+        //     { at: args }
+        //   );
+        // });
         return core.callExpression(fun, argReps);
       } else {
         // Handle struct constructor calls if necessary
@@ -330,7 +331,8 @@ export default function analyze(match) {
       functionBody
     ) {
       const name = functionName.sourceString;
-      const fun = core.fun(name);
+      const params = parameters.asIteration().children.map((a) => a.rep());
+      const fun = core.fun(name,params);
       mustNotAlreadyBeDeclared(name, { at: functionName });
       context.add(name, fun);
 
@@ -348,6 +350,7 @@ export default function analyze(match) {
 
       fun.paramNames = paramNames;
       fun.body = body;
+
 
       return core.naturalLanguageFunctionDefinition(
         name,
@@ -429,6 +432,7 @@ export default function analyze(match) {
     Expression_use(id) {
       const varName = id.sourceString;
       const entity = context.lookup(varName);
+      console.log(entity);
       mustHaveBeenFound(entity, varName, { at: id });
       return entity;
     },
@@ -459,26 +463,25 @@ export default function analyze(match) {
           //STRING = String(left) + String(right);
           return core.binaryExpression(operator, left, right, STRING);
         } else {
-          if (left.kind === "Variable") {
-            console.log("TYPE AND KIND OF STRING::", left.type, left.kind);
-            const varName = left.name;
-            const entity = context.lookup(varName);
-            mustHaveBeenFound(entity, varName, { at: expression1 });
-            mustHaveNumericType(entity, { at: expression1 });
-          } else {
-            mustHaveNumericType(left, { at: expression1 });
+          if (left.type !== undefined && right.type !== undefined ) {
+            if (left.kind === "Variable") {
+              const varName = left.name;
+              const entity = context.lookup(varName);
+              mustHaveBeenFound(entity, varName, { at: expression1 });
+              mustHaveNumericType(entity, { at: expression1 });
+            } else {
+              mustHaveNumericType(left, { at: expression1 });
+            }
+            if ( right.kind === "Variable") {
+              const varName = right.name;
+              const entity = context.lookup(varName);
+              mustHaveBeenFound(entity, varName, { at: expression2 });
+              mustHaveNumericType(entity, { at: expression2 });
+            } else {
+              mustHaveNumericType(right, { at: expression2 });
+            }
           }
-          if (right.kind === "Variable") {
-            const varName = right.name;
-            const entity = context.lookup(varName);
-            mustHaveBeenFound(entity, varName, { at: expression2 });
-            mustHaveNumericType(entity, { at: expression2 });
-          } else {
-            mustHaveNumericType(right, { at: expression2 });
-          }
-          const resultType =
-            left.type === INT && right.type === INT ? INT : FLOAT;
-          return core.binaryExpression(operator, left, right, resultType);
+          return core.binaryExpression(operator, left, right);
         }
       } else if (operator === "and" || operator === "or") {
         mustHaveBooleanType(left, { at: expression1 });
