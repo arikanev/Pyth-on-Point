@@ -1,0 +1,2 @@
+let name = "Ari"
+define greet(name) then print "Hello " + name

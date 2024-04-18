@@ -253,7 +253,7 @@ export default function analyze(match) {
 
   function mustBeCallable(e, at) {
     const callable =
-      e?.kind === "StructType" || e.type?.kind === "FunctionType";
+      e?.kind === "StructType" || e?.kind === "Function";
     must(callable, "Call of non-function or non-constructor", at);
   }
 
@@ -287,6 +287,7 @@ export default function analyze(match) {
       const funName = functionName.sourceString;
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
+      
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {

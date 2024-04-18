@@ -10,7 +10,7 @@ export function program(statements) {
 }
 
 export function fun(name) {
-  return { kind: "Function", name };
+  return { kind: "Function", name};
 }
 
 export function functionDeclaration(fun, params, body) {
