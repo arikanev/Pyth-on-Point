@@ -94,8 +94,8 @@ export function stringLiteral(value, type) {
   return { kind: "StringLiteral", value, type };
 }
 
-export function binaryExpression(op, left, right) {
-  return { kind: "BinaryExpression", op, left, right };
+export function binaryExpression(op, left, right, type) {
+  return { kind: "BinaryExpression", op, left, right, type };
 }
 
 // Example for variables and variable declarations.

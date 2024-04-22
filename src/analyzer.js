@@ -432,7 +432,7 @@ export default function analyze(match) {
     Expression_use(id) {
       const varName = id.sourceString;
       const entity = context.lookup(varName);
-      // console.log(entity);
+      console.log(entity);
       mustHaveBeenFound(entity, varName, { at: id });
       return entity;
     },
@@ -480,8 +480,9 @@ export default function analyze(match) {
             } else {
               mustHaveNumericType(right, { at: expression2 });
             }
+            return core.binaryExpression(operator, left, right, INT)
           }
-          return core.binaryExpression(operator, left, right);
+          return core.binaryExpression(operator, left, right, undefined);
         }
       } else if (operator === "and" || operator === "or") {
         mustHaveBooleanType(left, { at: expression1 });

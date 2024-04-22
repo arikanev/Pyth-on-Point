@@ -1,6 +1,3 @@
-
-    define countDown(n) then
-    for i in predictive_range(n, 0, prime) then
-         yield i
-     for num in countDown(5) then
-       print num
+define isEven(n) then
+if (n % 2) == 0 then
+return true

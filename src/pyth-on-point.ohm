@@ -16,7 +16,8 @@ PythOnPoint {
   NaturalLanguageFunctionDefinition
                   = "define" functionName "(" Parameters ")" "then" FunctionBody 
                    
-  PredictiveLoop  = "for" variable "in" "predictive_range(" number "," number "," patternType ")" "{" LoopBody "}"
+  PredictiveLoop  = "for" variable "in" "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "then" "{" LoopBody "}"
+
   
   ComparisonStatement
                   = "compare" Expression "to" Expression
