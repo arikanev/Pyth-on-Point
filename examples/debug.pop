@@ -1,4 +1,6 @@
-define greet(name,bug) then print bug + name
-let arg1 = "name"
-let arg2 = "bug"
-greet(arg1,arg2)
+
+    define countDown(n) then
+    for i in predictive_range(n, 0, prime) then
+         yield i
+     for num in countDown(5) then
+       print num

@@ -291,7 +291,7 @@ export default function analyze(match) {
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
-        console.log(fun)
+        // console.log(fun)
         mustHaveCorrectArgumentCount(
           argReps.length,
           fun.parameters.length,
@@ -432,7 +432,7 @@ export default function analyze(match) {
     Expression_use(id) {
       const varName = id.sourceString;
       const entity = context.lookup(varName);
-      console.log(entity);
+      // console.log(entity);
       mustHaveBeenFound(entity, varName, { at: id });
       return entity;
     },
