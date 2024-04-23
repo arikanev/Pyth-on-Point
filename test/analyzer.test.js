@@ -54,8 +54,9 @@ const semanticChecks = [
   [
     "yield statement",
     `define countDown(n) then
-       for i in predictive_range(n, 0, prime) then
-         yield i
+       for i in predictive_range(n, 0, prime) {
+        yield i
+       }  
      for num in countDown(5) then
        print num`,
   ],

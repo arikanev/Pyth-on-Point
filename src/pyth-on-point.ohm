@@ -9,6 +9,14 @@ PythOnPoint {
                   | ReturnStatement
                   | YieldStatement
                   | FunctionStatement
+                  | IfStatment
+
+  IfStatment
+                  = "if" "(" Expression binaryOp Expression ")" "{" IfBody "}" (elsePart)?
+
+  elsePart
+                  = "else" "{" IfBody "}"
+  
   
   VariableDeclaration 
                   = "let" variable "=" Expression
@@ -16,7 +24,7 @@ PythOnPoint {
   NaturalLanguageFunctionDefinition
                   = "define" functionName "(" Parameters ")" "then" FunctionBody 
                    
-  PredictiveLoop  = "for" variable "in" "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "then" "{" LoopBody "}"
+  PredictiveLoop  = "for" variable "in" "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
 
   
   ComparisonStatement
@@ -36,6 +44,7 @@ PythOnPoint {
 
   patternType     = "prime" | "fibonacci" | "factorial"
   LoopBody        = Statement+
+  IfBody          = Statement+
 
   Expression      = Expression binaryOp Expression   --binary
                   | number
@@ -47,6 +56,7 @@ PythOnPoint {
   string          = "\"" (~"\"" any)* "\""
   variable        = alnum+
   binaryOp        = "+" | "-" | "*" | "/" | "and" | "or" | "%"
+  conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
   literal = number | string
 }
 
