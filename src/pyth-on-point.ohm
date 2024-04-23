@@ -9,15 +9,7 @@ PythOnPoint {
                   | ReturnStatement
                   | YieldStatement
                   | FunctionStatement
-                  | IfStatment
 
-  IfStatment
-                  = "if" "(" Expression binaryOp Expression ")" "{" IfBody "}" (elsePart)?
-
-  elsePart
-                  = "else" "{" IfBody "}"
-  
-  
   VariableDeclaration 
                   = "let" variable "=" Expression
 
@@ -26,6 +18,10 @@ PythOnPoint {
                    
   PredictiveLoop  = "for" variable "in" "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
 
+
+
+  
+  
   
   ComparisonStatement
                   = "compare" Expression "to" Expression

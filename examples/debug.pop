@@ -1,3 +1,7 @@
 define isEven(n) then
-if (n % 2) == 0 then
-return true
+       if ((n % 2) == 0) {
+         return true
+       }
+       else {
+         return false
+       }
