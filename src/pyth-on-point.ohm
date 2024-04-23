@@ -2,6 +2,7 @@ PythOnPoint {
   Program         = Statement+
 
   Statement       = VariableDeclaration
+                  | VariableReassignment
                   | NaturalLanguageFunctionDefinition
                   | PredictiveLoop
                   | ComparisonStatement
@@ -9,25 +10,29 @@ PythOnPoint {
                   | ReturnStatement
                   | YieldStatement
                   | FunctionStatement
+                  | GeneratorStatement
 
-  VariableDeclaration 
-                  = "let" variable "=" Expression
+  VariableDeclaration = "let" variable "=" bool
+                      | "let" variable "=" FunctionStatement
+                      | "let" variable "=" Expression 
+                      
 
-  NaturalLanguageFunctionDefinition
-                  = "define" functionName "(" Parameters ")" "then" FunctionBody 
+  VariableReassignment = variable "=" bool
+                       | variable "=" FunctionStatement
+                       | variable "=" Expression
+
+
+  NaturalLanguageFunctionDefinition = "define" functionName "(" Parameters ")" "then" FunctionBody 
                    
   PredictiveLoop  = "for" variable "in" "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
 
-
-
-  
-  
+  GeneratorStatement = "for" variable "in" FunctionStatement "then" "{" PrintStatement "}"
   
   ComparisonStatement
                   = "compare" Expression "to" Expression
 
   PrintStatement  = "print" (FunctionStatement | Expression)
-  ReturnStatement = "return" Expression
+  ReturnStatement = "return" (FunctionStatement | Expression)
   YieldStatement  = "yield" Expression
   FunctionStatement = functionName "(" Parameters ")"
 
@@ -54,5 +59,6 @@ PythOnPoint {
   binaryOp        = "+" | "-" | "*" | "/" | "and" | "or" | "%"
   conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
   literal = number | string
-}
+  bool = "true" | "True" | "false" | "False"
+  }
 
