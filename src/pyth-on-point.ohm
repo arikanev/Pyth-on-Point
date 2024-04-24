@@ -28,13 +28,15 @@ PythOnPoint {
 
   GeneratorStatement = "for" variable "in" FunctionStatement "then" "{" PrintStatement "}"
   
-  ComparisonStatement
-                  = "compare" Expression "to" Expression
+  ComparisonStatement = "compare" Expression "to" Expression
+
+  ComparisonStatement2 = Expression "==" Expression
 
   PrintStatement  = "print" (FunctionStatement | Expression)
-  ReturnStatement = "return" (FunctionStatement | Expression)
+  ReturnStatement = "return" (FunctionStatement | Expression | ComparisonStatement | ComparisonStatement2)
   YieldStatement  = "yield" Expression
   FunctionStatement = functionName "(" Parameters ")"
+  IfStatement = "if" Expression "then"
 
   functionName    = alnum+
   Parameters      = ListOf<Parameter, ",">
