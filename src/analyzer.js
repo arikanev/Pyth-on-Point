@@ -385,7 +385,7 @@ export default function analyze(match) {
     ComparisonStatement(_compare, expression1, _to, expression2) {
       const expr1 = expression1.rep();
       const expr2 = expression2.rep();
-      console.log(expr1 > expr2);
+      console.log(expr1 == expr2);
       return core.comparisonStatement(expr1, expr2);
     },
     PrintStatement(_print, expression) {
