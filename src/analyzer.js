@@ -252,8 +252,7 @@ export default function analyze(match) {
   }
 
   function mustBeCallable(e, at) {
-    const callable =
-      e?.kind === "StructType" || e?.kind === "Function";
+    const callable = e?.kind === "StructType" || e?.kind === "Function";
     must(callable, "Call of non-function or non-constructor", at);
   }
 
@@ -295,6 +294,7 @@ export default function analyze(match) {
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
       console.log(fun)
+
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
@@ -340,7 +340,7 @@ export default function analyze(match) {
     ) {
       const name = functionName.sourceString;
       const params = parameters.asIteration().children.map((a) => a.rep());
-      const fun = core.fun(name,params);
+      const fun = core.fun(name, params);
       mustNotAlreadyBeDeclared(name, { at: functionName });
       context.add(name, fun);
 
@@ -358,8 +358,8 @@ export default function analyze(match) {
       fun.paramNames = paramNames;
       fun.body = body;
 
-
       return core.naturalLanguageFunctionDefinition(
+        "NaturalLanguageFunctionDefinition",
         name,
         paramNames,
         body,
@@ -393,9 +393,11 @@ export default function analyze(match) {
       context = context.parent;
       return core.predictiveRange(iterator, low, high, patternType, body);
     },
+
     ComparisonStatement(_compare, expression1, _to, expression2) {
       const expr1 = expression1.rep();
       const expr2 = expression2.rep();
+      console.log(expr1 == expr2);
       return core.comparisonStatement(expr1, expr2);
     },
     PrintStatement(_print, expression) {
@@ -464,6 +466,13 @@ export default function analyze(match) {
       context.add(name, variable);
       return core.variableDeclaration(variable, value);
     },
+    VariableReassignment(id, _equal, expression) {
+      const name = id.sourceString;
+      const value = expression.rep();
+      const variable = core.variable(name, value.type);
+      context.add(name, variable);
+      return core.variableDeclaration(variable, value);
+    },
 
     Expression_binary(expression1, op, expression2) {
       const left = expression1.rep();
@@ -483,7 +492,7 @@ export default function analyze(match) {
           //STRING = String(left) + String(right);
           return core.binaryExpression(operator, left, right, STRING);
         } else {
-          if (left.type !== undefined && right.type !== undefined ) {
+          if (left.type !== undefined && right.type !== undefined) {
             if (left.kind === "Variable") {
               const varName = left.name;
               const entity = context.lookup(varName);
@@ -492,7 +501,7 @@ export default function analyze(match) {
             } else {
               mustHaveNumericType(left, { at: expression1 });
             }
-            if ( right.kind === "Variable") {
+            if (right.kind === "Variable") {
               const varName = right.name;
               const entity = context.lookup(varName);
               mustHaveBeenFound(entity, varName, { at: expression2 });
@@ -500,7 +509,7 @@ export default function analyze(match) {
             } else {
               mustHaveNumericType(right, { at: expression2 });
             }
-            return core.binaryExpression(operator, left, right, INT)
+            return core.binaryExpression(operator, left, right, INT);
           }
           return core.binaryExpression(operator, left, right, undefined);
         }

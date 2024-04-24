@@ -9,17 +9,23 @@ export function program(statements) {
   return { kind: "Program", statements };
 }
 
-export function fun(name,parameters) {
-  return { kind: "Function", name, parameters};
+export function fun(name, parameters) {
+  return { kind: "Function", name, parameters };
 }
 
 export function functionDeclaration(fun, params, body) {
   return { kind: "FunctionDeclaration", fun, params, body };
 }
 
-export function naturalLanguageFunctionDefinition(name, paramNames, body, fun) {
+export function naturalLanguageFunctionDefinition(
+  kind,
+  name,
+  paramNames,
+  body,
+  fun
+) {
   return {
-    kind: "NaturalLanguageFunctionDefinition",
+    kind: kind,
     name,
     paramNames,
     body,
@@ -34,6 +40,13 @@ export function predictiveLoop(iterator, number1, number2, loopBody) {
     number1,
     number2,
     loopBody,
+  };
+}
+
+export function generatorStatement(expression) {
+  return {
+    kind: "Generator",
+    expression,
   };
 }
 
@@ -101,6 +114,10 @@ export function binaryExpression(op, left, right, type) {
 // Example for variables and variable declarations.
 export function variableDeclaration(variable, initializer) {
   return { kind: "VariableDeclaration", variable, initializer };
+}
+
+export function VariableReassignnment(variable, value) {
+  return { kind: "VariableReassignment", variable, value };
 }
 
 // Add additional utility functions as necessary to support the full range of your grammar.

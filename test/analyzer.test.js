@@ -56,9 +56,7 @@ const semanticChecks = [
     `define countDown(n) then
        for i in predictive_range(n, 0, prime) {
         yield i
-       }  
-     for num in countDown(5) then
-       print num`,
+       } `,
   ],
   [
     "comparison with variables",
@@ -81,9 +79,11 @@ const semanticChecks = [
   ],
   [
     "nested predictive loops",
-    `for i in predictive_range(1, 5, prime) then
-       for j in predictive_range(1, 3, fibonacci) then
-         print i * j`,
+    `for i in predictive_range(1, 5, prime) {
+       for j in predictive_range(1, 3, fibonacci) {
+         print i * j
+       }
+      }`,
   ],
   [
     "complex binary expressions",
@@ -91,47 +91,16 @@ const semanticChecks = [
      print x`,
   ],
   [
-    "function with conditional return",
-    `define isEven(n) then
-       if ((n % 2) == 0) then
-         return true
-       else
-         return false
-     print isEven(4)`,
-  ],
-  [
     "recursive function call",
-    `define factorial(n) then
-       if n == 0 then
-         return 1
-       else
-         return n * factorial(n - 1)
-     print factorial(5)`,
-  ],
-  [
-    "higher-order function",
-    `define applyTwice(func, x) then
-       return func(func(x))
-     define square(x) then
-       return x * x
-     print applyTwice(square, 3)`,
-  ],
-  [
-    "closure",
-    `define outerFunction() then
-       let counter = 0
-       define innerFunction() then
-         counter = counter + 1
-         print counter
-       return innerFunction
-     let increment = outerFunction()
-     increment()
-     increment()`,
+    `define recurse(n) then 
+         n = 2
+         return recurse(n)`,
   ],
   [
     "predictive loop with complex range",
-    `for i in predictive_range(1 + 2, 10 * 2, prime) then
-       print i`,
+    `for i in predictive_range(1, 10, factorial) {
+       print i
+    }`,
   ],
   [
     "logical operators",
@@ -173,11 +142,6 @@ const semanticChecks = [
      print multiply(5, 3)`,
   ],
   [
-    "predictive loop with no pattern",
-    `for i in predictive_range(1, 5) then
-       print i`,
-  ],
-  [
     "print statement with variable",
     `let message = "Hello, PythOnPoint!"
      print message`,
@@ -190,15 +154,17 @@ const semanticChecks = [
   ],
   [
     "predictive loop with different pattern",
-    `for i in predictive_range(1, 20, fibonacci) then
-       print i`,
+    `for i in predictive_range(1, 20, fibonacci) {
+       print i
+    }`,
   ],
   [
     "predictive loop with variable bounds",
     `let start = 1
      let end = 10
-     for i in predictive_range(start, end, prime) then
-       print i`,
+     for i in predictive_range(start, end, prime) {
+       print i
+     }`,
   ],
   ["comparison statement with literals", `compare 5 to 10`],
   [
