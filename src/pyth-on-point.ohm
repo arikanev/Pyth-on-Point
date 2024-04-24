@@ -12,9 +12,9 @@ PythOnPoint {
                   | FunctionStatement
                   | GeneratorStatement
 
-  VariableDeclaration = "let" variable "=" bool
-                      | "let" variable "=" FunctionStatement
-                      | "let" variable "=" Expression 
+  VariableDeclaration = let variable "=" bool
+                      | let variable "=" FunctionStatement
+                      | let variable "=" Expression 
                       
 
   VariableReassignment = variable "=" bool
@@ -22,21 +22,21 @@ PythOnPoint {
                        | variable "=" Expression
 
 
-  NaturalLanguageFunctionDefinition = "define" functionName "(" Parameters ")" "then" FunctionBody 
+  NaturalLanguageFunctionDefinition = define functionName "(" Parameters ")" then FunctionBody 
                    
-  PredictiveLoop  = "for" variable "in" "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
+  PredictiveLoop  = for variable in "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
 
-  GeneratorStatement = "for" variable "in" FunctionStatement "then" "{" PrintStatement "}"
+  GeneratorStatement = for variable in FunctionStatement then "{" PrintStatement "}"
   
-  ComparisonStatement = "compare" Expression "to" Expression
+  ComparisonStatement = compare Expression to Expression
 
   ComparisonStatement2 = Expression "==" Expression
 
-  PrintStatement  = "print" (FunctionStatement | Expression)
-  ReturnStatement = "return" (FunctionStatement | Expression | ComparisonStatement | ComparisonStatement2)
-  YieldStatement  = "yield" Expression
+  PrintStatement  = print (FunctionStatement | Expression)
+  ReturnStatement = return (FunctionStatement | Expression | ComparisonStatement | ComparisonStatement2)
+  YieldStatement  = yield Expression
   FunctionStatement = functionName "(" Parameters ")"
-  IfStatement = "if" Expression "then"
+  IfStatement = if Expression then
 
   functionName    = alnum+
   Parameters      = ListOf<Parameter, ",">
@@ -63,5 +63,17 @@ PythOnPoint {
   conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
   literal = number | string
   bool = "true" | "True" | "false" | "False"
+
+print = "print" ~alnum
+for = "for" ~alnum
+return = "return" ~alnum
+in = "in" ~alnum
+let = "let" ~alnum
+then = "then" ~alnum
+if = "if" ~alnum
+compare = "compare" ~alnum
+to = "to" ~alnum
+define = "define" ~alnum
+yield = "yield" ~alnum
   }
 
