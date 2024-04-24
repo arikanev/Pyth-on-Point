@@ -1,7 +1,3 @@
-define isEven(n) then
-       if ((n % 2) == 0) {
-         return true
-       }
-       else {
-         return false
-       }
+define mult(num1,num2 = 1) then
+  print(num1*num2)
+mult(2)

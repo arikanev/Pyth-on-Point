@@ -273,7 +273,14 @@ export default function analyze(match) {
     mustBeAssignable(e, { toType: f.type.returnType }, at);
   }
 
-  function mustHaveCorrectArgumentCount(argCount, paramCount, at) {
+  function mustHaveCorrectArgumentCount(argCount, params, at) {
+    let paramCount = 0
+    params.forEach(param => {
+      console.log(param)
+      if(param.value == undefined)
+      paramCount++;
+  })
+  
     const message = `${paramCount} argument(s) required but ${argCount} passed`;
     must(argCount === paramCount, message, at);
   }
@@ -287,14 +294,13 @@ export default function analyze(match) {
       const funName = functionName.sourceString;
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
-      
+      console.log(fun)
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
-        // console.log(fun)
         mustHaveCorrectArgumentCount(
           argReps.length,
-          fun.parameters.length,
+          fun.parameters,
           {
             at: args,
           }
@@ -318,7 +324,9 @@ export default function analyze(match) {
     },
 
     functionName(name) {
+      console.log("function name");
       return name.sourceString;
+      
     },
 
     NaturalLanguageFunctionDefinition(
@@ -337,12 +345,11 @@ export default function analyze(match) {
       context.add(name, fun);
 
       context = context.newChildContext({ inLoop: false, function: fun });
-      const paramNames = parameters
-        .asIteration()
-        .children.map((p) => p.sourceString);
+      const paramNames = params
       paramNames.forEach((paramName) => {
-        const param = core.variable(paramName);
-        context.add(paramName, param);
+        console.log(paramName.value)
+        const param = core.variable(paramName.paramName,paramName.value);
+        context.add(paramName.paramName, param);
       });
 
       const body = functionBody.rep();
@@ -436,6 +443,19 @@ export default function analyze(match) {
       mustHaveBeenFound(entity, varName, { at: id });
       return entity;
     },
+
+    Parameter_variable(variable) {
+      const paramName = variable.rep();
+      const value = undefined;
+      return {paramName,value};
+    },
+    
+    Parameter_default(variable, _equal, literal) {
+      const paramName = variable.rep();
+      const value = literal.rep();
+      return {paramName,value};
+    },
+
     VariableDeclaration(_let, id, _equal, expression) {
       const name = id.sourceString;
       mustNotAlreadyBeDeclared(name, { at: id });

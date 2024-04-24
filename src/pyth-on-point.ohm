@@ -34,8 +34,9 @@ PythOnPoint {
   functionName    = alnum+
   Parameters      = ListOf<Parameter, ",">
   Parameter       = variable "=" literal --default
-                  | variable 
-                  | string
+                  | variable             --variable
+ 
+
   FunctionBody    = Statement+
 
   patternType     = "prime" | "fibonacci" | "factorial"
