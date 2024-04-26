@@ -273,13 +273,12 @@ export default function analyze(match) {
   }
 
   function mustHaveCorrectArgumentCount(argCount, params, at) {
-    let paramCount = 0
-    params.forEach(param => {
-      console.log(param)
-      if(param.value == undefined)
-      paramCount++;
-  })
-  
+    let paramCount = 0;
+    params.forEach((param) => {
+      console.log(param);
+      if (param.value == undefined) paramCount++;
+    });
+
     const message = `${paramCount} argument(s) required but ${argCount} passed`;
     must(argCount === paramCount, message, at);
   }
@@ -293,18 +292,14 @@ export default function analyze(match) {
       const funName = functionName.sourceString;
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
-      console.log(fun)
+      console.log(fun);
 
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
-        mustHaveCorrectArgumentCount(
-          argReps.length,
-          fun.parameters,
-          {
-            at: args,
-          }
-        );
+        mustHaveCorrectArgumentCount(argReps.length, fun.parameters, {
+          at: args,
+        });
         // argReps.forEach((arg, i) => {
         //   mustBeAssignable(
         //     arg,
@@ -326,7 +321,6 @@ export default function analyze(match) {
     functionName(name) {
       console.log("function name");
       return name.sourceString;
-      
     },
 
     NaturalLanguageFunctionDefinition(
@@ -345,10 +339,10 @@ export default function analyze(match) {
       context.add(name, fun);
 
       context = context.newChildContext({ inLoop: false, function: fun });
-      const paramNames = params
+      const paramNames = params;
       paramNames.forEach((paramName) => {
-        console.log(paramName.value)
-        const param = core.variable(paramName.paramName,paramName.value);
+        console.log(paramName.value);
+        const param = core.variable(paramName.paramName, paramName.value);
         context.add(paramName.paramName, param);
       });
 
@@ -371,9 +365,9 @@ export default function analyze(match) {
       variable,
       _in,
       _predictiveRangeWithOpenP,
-      number1,
+      exp1,
       _comma1,
-      number2,
+      exp2,
       _comma2,
       patternType,
       _closeP,
@@ -382,11 +376,12 @@ export default function analyze(match) {
       _closeB
     ) {
       mustNotAlreadyBeDeclared(variable.sourceString, { at: variable });
-      const low = { value: Number(number1.sourceString), type: INT };
-      const high = { value: Number(number2.sourceString), type: INT };
-      mustHaveIntegerType(low, { at: number1 });
-      mustHaveIntegerType(high, { at: number2 });
-      const iterator = core.variable(variable.sourceString, INT, true);
+      const low = exp1.rep();
+      const high = exp2.rep();
+      mustHaveIntegerType(low, { at: exp1 });
+      mustHaveIntegerType(high, { at: exp2 });
+      const iterator = core.variable(variable.sourceString, INT);
+      patternType = patternType.sourceString;
       context = context.newChildContext({ inLoop: true });
       context.add(variable.sourceString, iterator);
       const body = loopBody.rep();
@@ -449,13 +444,13 @@ export default function analyze(match) {
     Parameter_variable(variable) {
       const paramName = variable.rep();
       const value = undefined;
-      return {paramName,value};
+      return { paramName, value };
     },
-    
+
     Parameter_default(variable, _equal, literal) {
       const paramName = variable.rep();
       const value = literal.rep();
-      return {paramName,value};
+      return { paramName, value };
     },
 
     VariableDeclaration(_let, id, _equal, expression) {

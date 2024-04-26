@@ -16,14 +16,13 @@ PythOnPoint {
                       | let variable "=" FunctionStatement
                       | let variable "=" Expression 
                       
-
   VariableReassignment = variable "=" bool
                        | variable "=" FunctionStatement
                        | variable "=" Expression
 
   NaturalLanguageFunctionDefinition = define functionName "(" Parameters ")" then FunctionBody 
                    
-  PredictiveLoop  = for variable in "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
+  PredictiveLoop  = for variable in "predictive_range(" Expression "," Expression "," patternType ")" "{" LoopBody "}"
 
   GeneratorStatement = for variable in FunctionStatement then "{" PrintStatement "}"
   
