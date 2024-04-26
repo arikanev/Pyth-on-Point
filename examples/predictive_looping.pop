@@ -1,4 +1,3 @@
-for num in predictive_range(2, 30, prime){
+for num in predictive_range(2, 30, prime) {
     print(num)
 }
-

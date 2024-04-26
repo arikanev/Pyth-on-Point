@@ -85,12 +85,16 @@ export function expression(type, ...args) {
   return { kind: "Expression", type, args };
 }
 
+<<<<<<< HEAD
 export function predictiveLoop(iterator, number1, number2, patternType, body) {
+=======
+export function predictiveRange(iterator, low, high, patternType, body) {
+>>>>>>> bcb76b3eccde1e807f56788f21ae7ee07ae3cfe7
   return {
     kind: "PredictiveLoop",
     iterator,
-    number1,
-    number2,
+    low,
+    high,
     patternType,
     body,
   };

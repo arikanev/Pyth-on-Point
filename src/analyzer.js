@@ -365,9 +365,9 @@ export default function analyze(match) {
       variable,
       _in,
       _predictiveRangeWithOpenP,
-      number1,
+      exp1,
       _comma1,
-      number2,
+      exp2,
       _comma2,
       patternType,
       _closeP,
@@ -376,11 +376,12 @@ export default function analyze(match) {
       _closeB
     ) {
       mustNotAlreadyBeDeclared(variable.sourceString, { at: variable });
-      const low = { value: Number(number1.sourceString), type: INT };
-      const high = { value: Number(number2.sourceString), type: INT };
-      mustHaveIntegerType(low, { at: number1 });
-      mustHaveIntegerType(high, { at: number2 });
-      const iterator = core.variable(variable.sourceString, INT, true);
+      const low = exp1.rep();
+      const high = exp2.rep();
+      mustHaveIntegerType(low, { at: exp1 });
+      mustHaveIntegerType(high, { at: exp2 });
+      const iterator = core.variable(variable.sourceString, INT);
+      patternType = patternType.sourceString;
       context = context.newChildContext({ inLoop: true });
       context.add(variable.sourceString, iterator);
       const body = loopBody.rep();

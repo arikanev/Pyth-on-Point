@@ -16,15 +16,13 @@ PythOnPoint {
                       | let variable "=" FunctionStatement
                       | let variable "=" Expression 
                       
-
   VariableReassignment = variable "=" bool
                        | variable "=" FunctionStatement
                        | variable "=" Expression
 
-
   NaturalLanguageFunctionDefinition = define functionName "(" Parameters ")" then FunctionBody 
                    
-  PredictiveLoop  = for variable in "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
+  PredictiveLoop  = for variable in "predictive_range(" Expression "," Expression "," patternType ")" "{" LoopBody "}"
 
   GeneratorStatement = for variable in FunctionStatement then "{" PrintStatement "}"
   
@@ -59,21 +57,22 @@ PythOnPoint {
   number          = digit+
   string          = "\"" (~"\"" any)* "\""
   variable        = alnum+
-  binaryOp        = "+" | "-" | "*" | "/" | "and" | "or" | "%"
+  arithOp         = "+" | "-" | "*" | "/" 
+  logicalOp       = "and" | "or" | "%"
   conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
+  binaryOp        = arithOp | logicalOp | conditionalOp
   literal = number | string
   bool = "true" | "True" | "false" | "False"
 
-print = "print" ~alnum
-for = "for" ~alnum
-return = "return" ~alnum
-in = "in" ~alnum
-let = "let" ~alnum
-then = "then" ~alnum
-if = "if" ~alnum
-compare = "compare" ~alnum
-to = "to" ~alnum
-define = "define" ~alnum
-yield = "yield" ~alnum
-  }
-
+  print = "print" ~alnum
+  for = "for" ~alnum
+  return = "return" ~alnum
+  in = "in" ~alnum
+  let = "let" ~alnum
+  then = "then" ~alnum
+  if = "if" ~alnum
+  compare = "compare" ~alnum
+  to = "to" ~alnum
+  define = "define" ~alnum
+  yield = "yield" ~alnum
+}
