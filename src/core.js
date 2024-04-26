@@ -85,9 +85,9 @@ export function expression(type, ...args) {
   return { kind: "Expression", type, args };
 }
 
-export function predictiveRange(iterator, number1, number2, patternType, body) {
+export function predictiveLoop(iterator, number1, number2, patternType, body) {
   return {
-    kind: "PredictiveRange",
+    kind: "PredictiveLoop",
     iterator,
     number1,
     number2,

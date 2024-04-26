@@ -273,13 +273,12 @@ export default function analyze(match) {
   }
 
   function mustHaveCorrectArgumentCount(argCount, params, at) {
-    let paramCount = 0
-    params.forEach(param => {
-      console.log(param)
-      if(param.value == undefined)
-      paramCount++;
-  })
-  
+    let paramCount = 0;
+    params.forEach((param) => {
+      console.log(param);
+      if (param.value == undefined) paramCount++;
+    });
+
     const message = `${paramCount} argument(s) required but ${argCount} passed`;
     must(argCount === paramCount, message, at);
   }
@@ -293,18 +292,14 @@ export default function analyze(match) {
       const funName = functionName.sourceString;
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
-      console.log(fun)
+      console.log(fun);
 
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
-        mustHaveCorrectArgumentCount(
-          argReps.length,
-          fun.parameters,
-          {
-            at: args,
-          }
-        );
+        mustHaveCorrectArgumentCount(argReps.length, fun.parameters, {
+          at: args,
+        });
         // argReps.forEach((arg, i) => {
         //   mustBeAssignable(
         //     arg,
@@ -326,7 +321,6 @@ export default function analyze(match) {
     functionName(name) {
       console.log("function name");
       return name.sourceString;
-      
     },
 
     NaturalLanguageFunctionDefinition(
@@ -345,10 +339,10 @@ export default function analyze(match) {
       context.add(name, fun);
 
       context = context.newChildContext({ inLoop: false, function: fun });
-      const paramNames = params
+      const paramNames = params;
       paramNames.forEach((paramName) => {
-        console.log(paramName.value)
-        const param = core.variable(paramName.paramName,paramName.value);
+        console.log(paramName.value);
+        const param = core.variable(paramName.paramName, paramName.value);
         context.add(paramName.paramName, param);
       });
 
@@ -391,7 +385,7 @@ export default function analyze(match) {
       context.add(variable.sourceString, iterator);
       const body = loopBody.rep();
       context = context.parent;
-      return core.predictiveRange(iterator, low, high, patternType, body);
+      return core.predictiveLoop(iterator, low, high, patternType, body);
     },
 
     ComparisonStatement(_compare, expression1, _to, expression2) {
@@ -449,13 +443,13 @@ export default function analyze(match) {
     Parameter_variable(variable) {
       const paramName = variable.rep();
       const value = undefined;
-      return {paramName,value};
+      return { paramName, value };
     },
-    
+
     Parameter_default(variable, _equal, literal) {
       const paramName = variable.rep();
       const value = literal.rep();
-      return {paramName,value};
+      return { paramName, value };
     },
 
     VariableDeclaration(_let, id, _equal, expression) {
