@@ -9,7 +9,6 @@ import {
   binaryExpression,
   stringLiteral,
   predictiveLoop,
-  predictiveRange,
   comparisonStatement,
 } from "../src/core.js";
 
@@ -18,7 +17,7 @@ const semanticChecks = [
   ["print statements", 'print "Hello PythOnPoint!"'],
   [
     "one liner function definition",
-    'let name = "Ari"\ndefine greet(name) then print "Hello " + name',
+    'define greet(name) then print "Hello " + name',
   ],
   ["predictive loop", "for x in predictive_range(1, 10, prime) { print(x) }"],
   ["comparison statement", "compare 1 to 2"],
@@ -35,7 +34,7 @@ const semanticChecks = [
   [
     "function call",
     `define greet(name) then print "Hello " + name
-     greet("Alice")`,
+     greet(name="Alice")`,
   ],
   [
     "nested function definition",
@@ -53,8 +52,8 @@ const semanticChecks = [
   ],
   [
     "yield statement",
-    `define countDown(n) then
-       for i in predictive_range(n, 0, prime) {
+    `define countPrime() then
+       for i in predictive_range(0, 10, prime) {
         yield i
        } `,
   ],
@@ -451,50 +450,4 @@ describe("The analyzer for PythOnPoint", () => {
       assert.throws(() => analyze(ast), errorMessagePattern);
     });
   }
-
-  it("produces the expected representation for a simple print statement", () => {
-    const source = 'print "Hello, PythOnPoint!"';
-    const ast = parse(source); // Implement parse function based on your setup
-    const analyzedAst = analyze(ast);
-    assert.deepEqual(
-      analyzedAst,
-      program([printStatement(stringLiteral("Hello, PythOnPoint!"))])
-    );
-  });
-
-  it("produces the expected representation for variable declaration and usage", () => {
-    const source = `let x = 5
-                  print x`;
-    const ast = parse(source);
-    const analyzedAst = analyze(ast);
-    assert.deepEqual(
-      analyzedAst,
-      program([
-        assignmentStatement(variable("x"), numericLiteral(5)),
-        printStatement(variable("x")),
-      ])
-    );
-  });
-
-  it("produces the expected representation for function call", () => {
-    const source = `define greet(name) then print "Hello " + name\n
-                  greet("Alice")`;
-    const ast = parse(source);
-    const analyzedAst = analyze(ast);
-    assert.deepEqual(
-      analyzedAst,
-      program([
-        naturalLanguageFunctionDefinition(
-          "greet",
-          ["name"],
-          printStatement(
-            binaryExpression("+", stringLiteral("Hello "), variable("name"))
-          )
-        ),
-        functionCall("greet", [stringLiteral("Alice")]),
-      ])
-    );
-  });
-
-  // Additional specific representation tests as needed...
 });

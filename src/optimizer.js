@@ -60,6 +60,9 @@ const optimizers = {
     }
     return s;
   },
+  BooleanLiteral(b) {
+    return b;
+  },
   BreakStatement(s) {
     return s;
   },
@@ -111,15 +114,15 @@ const optimizers = {
   },
   PredictiveLoop(s) {
     s.iterator = optimize(s.iterator);
-    s.number1 = optimize(s.number1);
-    s.number2 = optimize(s.number2);
+    s.low = optimize(s.low);
+    s.high = optimize(s.high);
     s.patternType = optimize(s.patternType);
     s.body = s.body.flatMap(optimize);
 
     // Check if the loop is a predictive loop for generating prime numbers
     if (
-      s.number1.constructor === Number &&
-      s.number2.constructor === Number &&
+      s.low.constructor === Number &&
+      s.high.constructor === Number &&
       s.patternType === "prime"
     ) {
       // Generate the first 5 prime numbers

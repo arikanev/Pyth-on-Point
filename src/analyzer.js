@@ -275,7 +275,6 @@ export default function analyze(match) {
   function mustHaveCorrectArgumentCount(argCount, params, at) {
     let paramCount = 0;
     params.forEach((param) => {
-      console.log(param);
       if (param.value == undefined) paramCount++;
     });
 
@@ -288,11 +287,10 @@ export default function analyze(match) {
       return core.program(statements.children.map((s) => s.rep()));
     },
 
-    FunctionStatement(functionName, _open, args, _close) {
+    FunctionExpression(functionName, _open, args, _close) {
       const funName = functionName.sourceString;
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
-      console.log(fun);
 
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
@@ -319,7 +317,6 @@ export default function analyze(match) {
     },
 
     functionName(name) {
-      console.log("function name");
       return name.sourceString;
     },
 
@@ -341,7 +338,6 @@ export default function analyze(match) {
       context = context.newChildContext({ inLoop: false, function: fun });
       const paramNames = params;
       paramNames.forEach((paramName) => {
-        console.log(paramName.value);
         const param = core.variable(paramName.paramName, paramName.value);
         context.add(paramName.paramName, param);
       });
@@ -392,7 +388,6 @@ export default function analyze(match) {
     ComparisonStatement(_compare, expression1, _to, expression2) {
       const expr1 = expression1.rep();
       const expr2 = expression2.rep();
-      console.log(expr1 == expr2);
       return core.comparisonStatement(expr1, expr2);
     },
     PrintStatement(_print, expression) {
@@ -436,7 +431,6 @@ export default function analyze(match) {
     Expression_use(id) {
       const varName = id.sourceString;
       const entity = context.lookup(varName);
-      console.log(entity);
       mustHaveBeenFound(entity, varName, { at: id });
       return entity;
     },
@@ -468,7 +462,26 @@ export default function analyze(match) {
       context.add(name, variable);
       return core.variableDeclaration(variable, value);
     },
+    Expression_true(_true) {
+      return core.booleanLiteral(true);
+    },
 
+    Expression_false(_false) {
+      return core.booleanLiteral(false);
+    },
+    Expression_binary_logical(expression, op, expression2) {
+      const left = expression.rep();
+      const right = expression2.rep();
+      const operator = op.sourceString;
+
+      if (operator === "and" || operator === "or") {
+        mustHaveBooleanType(left, { at: expression });
+        mustHaveBooleanType(right, { at: expression2 });
+        return core.binaryExpression(operator, left, right, BOOLEAN);
+      } else {
+        throw new Error(`Invalid logical operator: ${operator}`);
+      }
+    },
     Expression_binary(expression1, op, expression2) {
       const left = expression1.rep();
       const right = expression2.rep();
@@ -484,7 +497,6 @@ export default function analyze(match) {
           operator === "+" &&
           (left.type === STRING || right.type === STRING)
         ) {
-          //STRING = String(left) + String(right);
           return core.binaryExpression(operator, left, right, STRING);
         } else {
           if (left.type !== undefined && right.type !== undefined) {
