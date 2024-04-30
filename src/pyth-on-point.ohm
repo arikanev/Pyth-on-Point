@@ -62,7 +62,7 @@ PythOnPoint {
   binaryOp        = "+" | "-" | "*" | "/" | "and" | "or" | "%"
   conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
   literal = number | string
-  bool = "true" | "True" | "false" | "False"
+  bool = true | false
 
 print = "print" ~alnum
 for = "for" ~alnum
@@ -75,5 +75,10 @@ compare = "compare" ~alnum
 to = "to" ~alnum
 define = "define" ~alnum
 yield = "yield" ~alnum
+true = "true" ~alnum
+     | "True" ~alnum
+false = "false" ~alnum
+      | "False" ~alnum
+
   }
 
