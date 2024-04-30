@@ -1,5 +1,7 @@
 Ariel Kanevsky, Alex Gordon, Emmet Gingerich, Nico Meiswinkel
 
+Our language is right-associative in terms of binary operators and precedence!
+
 # Pyth-on-Point
 
 https://emmetgingerichlmu.github.io/Pyth-on-Point/

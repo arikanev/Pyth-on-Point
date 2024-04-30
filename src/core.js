@@ -12,7 +12,9 @@ export function program(statements) {
 export function fun(name, parameters) {
   return { kind: "Function", name, parameters };
 }
-
+export function booleanLiteral(value) {
+  return { kind: "BooleanLiteral", value };
+}
 export function functionDeclaration(fun, params, body) {
   return { kind: "FunctionDeclaration", fun, params, body };
 }
@@ -30,16 +32,6 @@ export function naturalLanguageFunctionDefinition(
     paramNames,
     body,
     fun,
-  };
-}
-
-export function predictiveLoop(iterator, number1, number2, loopBody) {
-  return {
-    kind: "PredictiveLoop",
-    iterator,
-    number1,
-    number2,
-    loopBody,
   };
 }
 
@@ -85,12 +77,12 @@ export function expression(type, ...args) {
   return { kind: "Expression", type, args };
 }
 
-export function predictiveRange(iterator, number1, number2, patternType, body) {
+export function predictiveLoop(iterator, low, high, patternType, body) {
   return {
-    kind: "PredictiveRange",
+    kind: "PredictiveLoop",
     iterator,
-    number1,
-    number2,
+    low,
+    high,
     patternType,
     body,
   };
@@ -109,6 +101,10 @@ export function stringLiteral(value, type) {
 
 export function binaryExpression(op, left, right, type) {
   return { kind: "BinaryExpression", op, left, right, type };
+}
+
+export function unaryExpression(op, operand, type) {
+  return { kind: "UnaryExpression", op, operand, type };
 }
 
 // Example for variables and variable declarations.

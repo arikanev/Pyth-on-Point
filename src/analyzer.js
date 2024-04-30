@@ -273,13 +273,11 @@ export default function analyze(match) {
   }
 
   function mustHaveCorrectArgumentCount(argCount, params, at) {
-    let paramCount = 0
-    params.forEach(param => {
-      console.log(param)
-      if(param.value == undefined)
-      paramCount++;
-  })
-  
+    let paramCount = 0;
+    params.forEach((param) => {
+      if (param.value == undefined) paramCount++;
+    });
+
     const message = `${paramCount} argument(s) required but ${argCount} passed`;
     must(argCount === paramCount, message, at);
   }
@@ -289,22 +287,17 @@ export default function analyze(match) {
       return core.program(statements.children.map((s) => s.rep()));
     },
 
-    FunctionStatement(functionName, _open, args, _close) {
+    FunctionExpression(functionName, _open, args, _close) {
       const funName = functionName.sourceString;
       const fun = context.lookup(funName);
       mustHaveBeenFound(fun, funName, { at: functionName });
-      console.log(fun)
 
       mustBeCallable(fun, { at: functionName });
       const argReps = args.asIteration().children.map((a) => a.rep());
       if (fun.kind === "Function") {
-        mustHaveCorrectArgumentCount(
-          argReps.length,
-          fun.parameters,
-          {
-            at: args,
-          }
-        );
+        mustHaveCorrectArgumentCount(argReps.length, fun.parameters, {
+          at: args,
+        });
         // argReps.forEach((arg, i) => {
         //   mustBeAssignable(
         //     arg,
@@ -324,9 +317,7 @@ export default function analyze(match) {
     },
 
     functionName(name) {
-      console.log("function name");
       return name.sourceString;
-      
     },
 
     NaturalLanguageFunctionDefinition(
@@ -345,10 +336,9 @@ export default function analyze(match) {
       context.add(name, fun);
 
       context = context.newChildContext({ inLoop: false, function: fun });
-      const paramNames = params
+      const paramNames = params;
       paramNames.forEach((paramName) => {
-        console.log(paramName.value)
-        const param = core.variable(paramName.paramName,paramName.value);
+        const param = core.variable(paramName.paramName, paramName.value);
         context.add(paramName.paramName, param);
       });
 
@@ -371,9 +361,9 @@ export default function analyze(match) {
       variable,
       _in,
       _predictiveRangeWithOpenP,
-      number1,
+      exp1,
       _comma1,
-      number2,
+      exp2,
       _comma2,
       patternType,
       _closeP,
@@ -382,22 +372,22 @@ export default function analyze(match) {
       _closeB
     ) {
       mustNotAlreadyBeDeclared(variable.sourceString, { at: variable });
-      const low = { value: Number(number1.sourceString), type: INT };
-      const high = { value: Number(number2.sourceString), type: INT };
-      mustHaveIntegerType(low, { at: number1 });
-      mustHaveIntegerType(high, { at: number2 });
-      const iterator = core.variable(variable.sourceString, INT, true);
+      const low = exp1.rep();
+      const high = exp2.rep();
+      mustHaveIntegerType(low, { at: exp1 });
+      mustHaveIntegerType(high, { at: exp2 });
+      const iterator = core.variable(variable.sourceString, INT);
+      patternType = patternType.sourceString;
       context = context.newChildContext({ inLoop: true });
       context.add(variable.sourceString, iterator);
       const body = loopBody.rep();
       context = context.parent;
-      return core.predictiveRange(iterator, low, high, patternType, body);
+      return core.predictiveLoop(iterator, low, high, patternType, body);
     },
 
     ComparisonStatement(_compare, expression1, _to, expression2) {
       const expr1 = expression1.rep();
       const expr2 = expression2.rep();
-      console.log(expr1 == expr2);
       return core.comparisonStatement(expr1, expr2);
     },
     PrintStatement(_print, expression) {
@@ -441,7 +431,6 @@ export default function analyze(match) {
     Expression_use(id) {
       const varName = id.sourceString;
       const entity = context.lookup(varName);
-      console.log(entity);
       mustHaveBeenFound(entity, varName, { at: id });
       return entity;
     },
@@ -449,13 +438,13 @@ export default function analyze(match) {
     Parameter_variable(variable) {
       const paramName = variable.rep();
       const value = undefined;
-      return {paramName,value};
+      return { paramName, value };
     },
-    
+
     Parameter_default(variable, _equal, literal) {
       const paramName = variable.rep();
       const value = literal.rep();
-      return {paramName,value};
+      return { paramName, value };
     },
 
     VariableDeclaration(_let, id, _equal, expression) {
@@ -473,7 +462,26 @@ export default function analyze(match) {
       context.add(name, variable);
       return core.variableDeclaration(variable, value);
     },
+    Expression_true(_true) {
+      return core.booleanLiteral(true);
+    },
 
+    Expression_false(_false) {
+      return core.booleanLiteral(false);
+    },
+    Expression_binary_logical(expression, op, expression2) {
+      const left = expression.rep();
+      const right = expression2.rep();
+      const operator = op.sourceString;
+
+      if (operator === "and" || operator === "or") {
+        mustHaveBooleanType(left, { at: expression });
+        mustHaveBooleanType(right, { at: expression2 });
+        return core.binaryExpression(operator, left, right, BOOLEAN);
+      } else {
+        throw new Error(`Invalid logical operator: ${operator}`);
+      }
+    },
     Expression_binary(expression1, op, expression2) {
       const left = expression1.rep();
       const right = expression2.rep();
@@ -489,7 +497,6 @@ export default function analyze(match) {
           operator === "+" &&
           (left.type === STRING || right.type === STRING)
         ) {
-          //STRING = String(left) + String(right);
           return core.binaryExpression(operator, left, right, STRING);
         } else {
           if (left.type !== undefined && right.type !== undefined) {

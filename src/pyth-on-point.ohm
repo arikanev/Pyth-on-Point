@@ -9,34 +9,30 @@ PythOnPoint {
                   | PrintStatement
                   | ReturnStatement
                   | YieldStatement
-                  | FunctionStatement
+                  | FunctionExpression
                   | GeneratorStatement
 
-  VariableDeclaration = let variable "=" bool
-                      | let variable "=" FunctionStatement
+  VariableDeclaration = let variable "=" FunctionExpression
                       | let variable "=" Expression 
                       
-
-  VariableReassignment = variable "=" bool
-                       | variable "=" FunctionStatement
+  VariableReassignment = variable "=" FunctionExpression
                        | variable "=" Expression
-
 
   NaturalLanguageFunctionDefinition = define functionName "(" Parameters ")" then FunctionBody 
                    
-  PredictiveLoop  = for variable in "predictive_range(" (number | variable) "," (number | variable) "," patternType ")" "{" LoopBody "}"
+  PredictiveLoop  = for variable in "predictive_range(" Expression "," Expression "," patternType ")" "{" LoopBody "}"
 
-  GeneratorStatement = for variable in FunctionStatement then "{" PrintStatement "}"
+  GeneratorStatement = for variable in FunctionExpression then "{" PrintStatement "}"
   
   ComparisonStatement = compare Expression to Expression
 
   ComparisonStatement2 = Expression "==" Expression
 
-  PrintStatement  = print (FunctionStatement | Expression)
-  ReturnStatement = return (FunctionStatement | Expression | ComparisonStatement | ComparisonStatement2)
+  PrintStatement  = print (FunctionExpression | Expression)
+  ReturnStatement = return (FunctionExpression | Expression | ComparisonStatement | ComparisonStatement2)
   YieldStatement  = yield Expression
-  FunctionStatement = functionName "(" Parameters ")"
-  IfStatement = if Expression then
+  FunctionExpression = functionName "(" Parameters ")"
+  IfStatement = if (FunctionExpression | Expression) then IfBody
 
   functionName    = alnum+
   Parameters      = ListOf<Parameter, ",">
@@ -51,16 +47,21 @@ PythOnPoint {
   IfBody          = Statement+
 
   Expression      = Expression binaryOp Expression   --binary
+                  | Expression logicalOp Expression  --binary_logical
                   | number
                   | string
                   | variable                         --use
                   | "(" Expression ")"               --parens
+                  | true                             --true
+                  | false                            --false
 
   number          = digit+
   string          = "\"" (~"\"" any)* "\""
   variable        = alnum+
-  binaryOp        = "+" | "-" | "*" | "/" | "and" | "or" | "%"
+  arithOp         = "+" | "-" | "*" | "/" 
+  logicalOp       = "and" | "or" | "%"
   conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
+  binaryOp        = arithOp | logicalOp | conditionalOp
   literal = number | string
   bool = true | false
 
