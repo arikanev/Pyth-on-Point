@@ -63,19 +63,23 @@ PythOnPoint {
   conditionalOp   = "<=" | ">=" | "==" | "&" | "|" | ">" | "<"
   binaryOp        = arithOp | logicalOp | conditionalOp
   literal = number | string
+  bool = true | false
 
+print = "print" ~alnum
+for = "for" ~alnum
+return = "return" ~alnum
+in = "in" ~alnum
+let = "let" ~alnum
+then = "then" ~alnum
+if = "if" ~alnum
+compare = "compare" ~alnum
+to = "to" ~alnum
+define = "define" ~alnum
+yield = "yield" ~alnum
+true = "true" ~alnum
+     | "True" ~alnum
+false = "false" ~alnum
+      | "False" ~alnum
 
-  print = "print" ~alnum
-  for = "for" ~alnum
-  return = "return" ~alnum
-  in = "in" ~alnum
-  let = "let" ~alnum
-  then = "then" ~alnum
-  if = "if" ~alnum
-  compare = "compare" ~alnum
-  to = "to" ~alnum
-  define = "define" ~alnum
-  yield = "yield" ~alnum
-  true = "true" ~alnum
-  false = "false" ~alnum
-}
+  }
+
