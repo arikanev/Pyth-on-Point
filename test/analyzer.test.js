@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import parse from "../src/parser.js"; // Assuming you have a parsing mechanism
-import analyze from "../src/analyzer.js";
+import sinon from "sinon";
+import analyze, {
+  typeDescription,
+  mustBeAssignable,
+  equivalent,
+} from "../src/analyzer.js";
 import {
   program,
   naturalLanguageFunctionDefinition,
@@ -10,6 +15,12 @@ import {
   stringLiteral,
   predictiveLoop,
   comparisonStatement,
+  boolType,
+  intType,
+  floatType,
+  stringType,
+  voidType,
+  anyType,
 } from "../src/core.js";
 
 // Semantic checks for PythOnPoint language
@@ -450,4 +461,364 @@ describe("The analyzer for PythOnPoint", () => {
       assert.throws(() => analyze(ast), errorMessagePattern);
     });
   }
+});
+
+describe("typeDescription", () => {
+  it("returns 'int' for IntType", () => {
+    const type = { kind: "IntType" };
+    assert.strictEqual(typeDescription(type), "int");
+  });
+
+  it("returns 'float' for FloatType", () => {
+    const type = { kind: "FloatType" };
+    assert.strictEqual(typeDescription(type), "float");
+  });
+
+  it("returns 'string' for StringType", () => {
+    const type = { kind: "StringType" };
+    assert.strictEqual(typeDescription(type), "string");
+  });
+
+  it("returns 'boolean' for BoolType", () => {
+    const type = { kind: "BoolType" };
+    assert.strictEqual(typeDescription(type), "boolean");
+  });
+
+  it("returns 'void' for VoidType", () => {
+    const type = { kind: "VoidType" };
+    assert.strictEqual(typeDescription(type), "void");
+  });
+
+  it("returns 'any' for AnyType", () => {
+    const type = { kind: "AnyType" };
+    assert.strictEqual(typeDescription(type), "any");
+  });
+
+  it("returns the struct name for StructType", () => {
+    const type = { kind: "StructType", name: "Point" };
+    assert.strictEqual(typeDescription(type), "Point");
+  });
+
+  it("returns the function type description for FunctionType", () => {
+    const type = {
+      kind: "FunctionType",
+      paramTypes: [{ kind: "IntType" }, { kind: "StringType" }],
+      returnType: { kind: "BoolType" },
+    };
+    assert.strictEqual(typeDescription(type), "(int, string)->boolean");
+  });
+
+  it("returns the array type description for ArrayType", () => {
+    const type = {
+      kind: "ArrayType",
+      baseType: { kind: "IntType" },
+    };
+    assert.strictEqual(typeDescription(type), "[int]");
+  });
+
+  it("returns the optional type description for OptionalType", () => {
+    const type = {
+      kind: "OptionalType",
+      baseType: { kind: "StringType" },
+    };
+    assert.strictEqual(typeDescription(type), "string?");
+  });
+});
+
+describe("mustBeAssignable", () => {
+  it("does not throw an error when the types are assignable", () => {
+    const e = { type: intType };
+    const type = intType;
+    const at = { location: "test" };
+    assert.doesNotThrow(() => mustBeAssignable(e, { toType: type }, at));
+  });
+
+  it("throws an error when the types are not assignable", () => {
+    const e = { type: intType };
+    const type = boolType;
+    const at = { location: "test" };
+    assert.throws(
+      () => mustBeAssignable(e, { toType: type }, at),
+      /Cannot assign a int to a boolean/
+    );
+  });
+
+  it("includes the correct type descriptions in the error message", () => {
+    const e = { type: { kind: "ArrayType", baseType: stringType } };
+    const type = { kind: "OptionalType", baseType: intType };
+    const at = { location: "test" };
+    assert.throws(
+      () => mustBeAssignable(e, { toType: type }, at),
+      /Cannot assign a \[string\] to a int\?/
+    );
+  });
+
+  it("calls the 'must' function with the correct arguments", () => {
+    const e = { type: intType };
+    const type = intType;
+    const at = { location: "test" };
+    const mustStub = sinon.stub();
+    const originalMust = must;
+    must = mustStub;
+    mustBeAssignable(e, { toType: type }, at);
+    assert.strictEqual(mustStub.callCount, 1);
+    assert.strictEqual(mustStub.args[0][0], true);
+    assert.strictEqual(mustStub.args[0][1], "Cannot assign a int to a int");
+    assert.strictEqual(mustStub.args[0][2], at);
+    must = originalMust;
+  });
+});
+
+describe("equivalent", () => {
+  it("returns true when the types are identical", () => {
+    const t1 = intType;
+    const t2 = intType;
+    assert.strictEqual(equivalent(t1, t2), true);
+  });
+
+  it("returns true when both types are OptionalType and their base types are equivalent", () => {
+    const t1 = { kind: "OptionalType", baseType: intType };
+    const t2 = { kind: "OptionalType", baseType: intType };
+    assert.strictEqual(equivalent(t1, t2), true);
+  });
+
+  it("returns false when both types are OptionalType but their base types are not equivalent", () => {
+    const t1 = { kind: "OptionalType", baseType: intType };
+    const t2 = { kind: "OptionalType", baseType: stringType };
+    assert.strictEqual(equivalent(t1, t2), false);
+  });
+
+  it("returns true when both types are ArrayType and their base types are equivalent", () => {
+    const t1 = { kind: "ArrayType", baseType: intType };
+    const t2 = { kind: "ArrayType", baseType: intType };
+    assert.strictEqual(equivalent(t1, t2), true);
+  });
+
+  it("returns false when both types are ArrayType but their base types are not equivalent", () => {
+    const t1 = { kind: "ArrayType", baseType: intType };
+    const t2 = { kind: "ArrayType", baseType: stringType };
+    assert.strictEqual(equivalent(t1, t2), false);
+  });
+
+  it("returns true when both types are FunctionType, have equivalent return types, and have equivalent parameter types", () => {
+    const t1 = {
+      kind: "FunctionType",
+      returnType: intType,
+      paramTypes: [intType, stringType],
+    };
+    const t2 = {
+      kind: "FunctionType",
+      returnType: intType,
+      paramTypes: [intType, stringType],
+    };
+    assert.strictEqual(equivalent(t1, t2), true);
+  });
+
+  it("returns false when both types are FunctionType but have different return types", () => {
+    const t1 = {
+      kind: "FunctionType",
+      returnType: intType,
+      paramTypes: [intType, stringType],
+    };
+    const t2 = {
+      kind: "FunctionType",
+      returnType: boolType,
+      paramTypes: [intType, stringType],
+    };
+    assert.strictEqual(equivalent(t1, t2), false);
+  });
+
+  it("returns false when both types are FunctionType but have different parameter types", () => {
+    const t1 = {
+      kind: "FunctionType",
+      returnType: intType,
+      paramTypes: [intType, stringType],
+    };
+    const t2 = {
+      kind: "FunctionType",
+      returnType: intType,
+      paramTypes: [boolType, stringType],
+    };
+    assert.strictEqual(equivalent(t1, t2), false);
+  });
+
+  it("returns false when the types are different", () => {
+    const t1 = intType;
+    const t2 = stringType;
+    assert.strictEqual(equivalent(t1, t2), false);
+  });
+});
+
+describe("_iter", () => {
+  let builder;
+
+  before(() => {
+    // Setup builder by calling analyze with appropriate mock input
+    const mockInput = {
+      matcher: {
+        grammar: {
+          createSemantics: () => ({
+            addOperation: (name, operations) => operations,
+          }),
+        },
+      },
+    };
+    builder = analyze(mockInput).builder;
+  });
+
+  it("returns an empty array when no children are passed", () => {
+    const result = builder._iter();
+    assert.deepStrictEqual(result, []);
+  });
+
+  it("returns an array with the representation of a single child", () => {
+    const child = { rep: sinon.stub().returns("child1") };
+    const result = builder._iter(child);
+    assert.deepStrictEqual(result, ["child1"]);
+    assert.strictEqual(child.rep.callCount, 1); // Ensure rep was called
+  });
+
+  it("returns an array with the representations of multiple children", () => {
+    const child1 = { rep: sinon.stub().returns("child1") };
+    const child2 = { rep: sinon.stub().returns("child2") };
+    const child3 = { rep: sinon.stub().returns("child3") };
+    const result = builder._iter(child1, child2, child3);
+    assert.deepStrictEqual(result, ["child1", "child2", "child3"]);
+    assert.strictEqual(child1.rep.callCount, 1);
+    assert.strictEqual(child2.rep.callCount, 1);
+    assert.strictEqual(child3.rep.callCount, 1);
+  });
+
+  it("handles children with missing rep function", () => {
+    const child1 = { rep: sinon.stub().returns("child1") };
+    const child2 = {}; // Missing rep function
+    const child3 = { rep: sinon.stub().returns("child3") };
+    const result = builder._iter(child1, child2, child3);
+    assert.deepStrictEqual(result, ["child1", undefined, "child3"]);
+    assert.strictEqual(child1.rep.callCount, 1);
+    assert.strictEqual(child3.rep.callCount, 1);
+  });
+});
+
+describe("functionName", () => {
+  it("returns the source string of the provided name", () => {
+    const name = { sourceString: "myFunction" };
+    const result = analyze.builder.functionName(name);
+    assert.strictEqual(result, "myFunction");
+  });
+
+  it("returns undefined when the name is not provided", () => {
+    const result = analyze.builder.functionName();
+    assert.strictEqual(result, undefined);
+  });
+
+  it("returns undefined when the name does not have a sourceString property", () => {
+    const name = {};
+    const result = analyze.builder.functionName(name);
+    assert.strictEqual(result, undefined);
+  });
+});
+
+describe("Expression_true", () => {
+  it("returns a boolean literal with value true", () => {
+    const _true = { sourceString: "true" };
+    const result = analyze.builder.Expression_true(_true);
+    console.log(result);
+    console.log(core.booleanLiteral(true));
+    assert.deepStrictEqual(result, core.booleanLiteral(true));
+  });
+});
+
+describe("Expression_binary_logical", () => {
+  it("returns a binary expression with boolean type for 'and' operator", () => {
+    const expression = { rep: sinon.stub().returns({ type: boolType }) };
+    const expression2 = { rep: sinon.stub().returns({ type: boolType }) };
+    const op = { sourceString: "and" };
+    const result = analyze.builder.Expression_binary_logical(
+      expression,
+      op,
+      expression2
+    );
+    assert.deepStrictEqual(
+      result,
+      core.binaryExpression(
+        "and",
+        { type: boolType },
+        { type: boolType },
+        boolType
+      )
+    );
+    assert.strictEqual(expression.rep.callCount, 1);
+    assert.strictEqual(expression2.rep.callCount, 1);
+  });
+
+  it("returns a binary expression with boolean type for 'or' operator", () => {
+    const expression = { rep: sinon.stub().returns({ type: boolType }) };
+    const expression2 = { rep: sinon.stub().returns({ type: boolType }) };
+    const op = { sourceString: "or" };
+    const result = analyze.builder.Expression_binary_logical(
+      expression,
+      op,
+      expression2
+    );
+    assert.deepStrictEqual(
+      result,
+      core.binaryExpression(
+        "or",
+        { type: boolType },
+        { type: boolType },
+        boolType
+      )
+    );
+    assert.strictEqual(expression.rep.callCount, 1);
+    assert.strictEqual(expression2.rep.callCount, 1);
+  });
+
+  it("throws an error for an invalid logical operator", () => {
+    const expression = { rep: sinon.stub().returns({ type: boolType }) };
+    const expression2 = { rep: sinon.stub().returns({ type: boolType }) };
+    const op = { sourceString: "invalidOperator" };
+    assert.throws(
+      () =>
+        analyze.builder.Expression_binary_logical(expression, op, expression2),
+      /Invalid logical operator: invalidOperator/
+    );
+    assert.strictEqual(expression.rep.callCount, 1);
+    assert.strictEqual(expression2.rep.callCount, 1);
+  });
+
+  it("calls mustHaveBooleanType for the left operand", () => {
+    const expression = { rep: sinon.stub().returns({ type: intType }), at: {} };
+    const expression2 = { rep: sinon.stub().returns({ type: boolType }) };
+    const op = { sourceString: "and" };
+    const mustHaveBooleanTypeStub = sinon.stub(analyze, "mustHaveBooleanType");
+    assert.throws(
+      () =>
+        analyze.builder.Expression_binary_logical(expression, op, expression2),
+      /Expected a boolean/
+    );
+    assert.strictEqual(mustHaveBooleanTypeStub.callCount, 1);
+    assert.strictEqual(mustHaveBooleanTypeStub.args[0][0], { type: intType });
+    assert.strictEqual(mustHaveBooleanTypeStub.args[0][1].at, expression);
+    mustHaveBooleanTypeStub.restore();
+  });
+
+  it("calls mustHaveBooleanType for the right operand", () => {
+    const expression = { rep: sinon.stub().returns({ type: boolType }) };
+    const expression2 = {
+      rep: sinon.stub().returns({ type: intType }),
+      at: {},
+    };
+    const op = { sourceString: "and" };
+    const mustHaveBooleanTypeStub = sinon.stub(analyze, "mustHaveBooleanType");
+    assert.throws(
+      () =>
+        analyze.builder.Expression_binary_logical(expression, op, expression2),
+      /Expected a boolean/
+    );
+    assert.strictEqual(mustHaveBooleanTypeStub.callCount, 2);
+    assert.strictEqual(mustHaveBooleanTypeStub.args[1][0], { type: intType });
+    assert.strictEqual(mustHaveBooleanTypeStub.args[1][1].at, expression2);
+    mustHaveBooleanTypeStub.restore();
+  });
 });

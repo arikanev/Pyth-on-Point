@@ -53,12 +53,6 @@ export default function analyze(match) {
   // Ohm's getLineAndColumnMessage will be used to prefix the error message. This
   // allows any semantic analysis errors to be presented to an end user in the
   // same format as Ohm's reporting of syntax errors.
-  function must(condition, message, errorLocation) {
-    if (!condition) {
-      const prefix = errorLocation.at.source.getLineAndColumnMessage();
-      throw new Error(`${prefix}${message}`);
-    }
-  }
 
   // Next come a number of carefully named utility functions that keep the
   // analysis code clean and readable. Without these utilities, the analysis
@@ -79,168 +73,12 @@ export default function analyze(match) {
     must([INT, FLOAT].includes(e.type), "Expected a number", at);
   }
 
-  function mustHaveNumericOrStringType(e, at) {
-    must(
-      [INT, FLOAT, STRING].includes(e.type),
-      "Expected a number or string",
-      at
-    );
-  }
-
   function mustHaveBooleanType(e, at) {
     must(e.type === BOOLEAN, "Expected a boolean", at);
   }
 
   function mustHaveIntegerType(e, at) {
     must(e.type === INT, "Expected an integer", at);
-  }
-
-  function mustHaveAnArrayType(e, at) {
-    must(e.type?.kind === "ArrayType", "Expected an array", at);
-  }
-
-  function mustHaveAnOptionalType(e, at) {
-    must(e.type?.kind === "OptionalType", "Expected an optional", at);
-  }
-
-  function mustHaveAStructType(e, at) {
-    must(e.type?.kind === "StructType", "Expected a struct", at);
-  }
-
-  function mustHaveAnOptionalStructType(e, at) {
-    // Used to check e?.x expressions, e must be an optional struct
-    must(
-      e.type?.kind === "OptionalType" && e.type.baseType?.kind === "StructType",
-      "Expected an optional struct",
-      at
-    );
-  }
-
-  function mustBothHaveTheSameType(e1, e2, at) {
-    must(
-      equivalent(e1.type, e2.type),
-      "Operands do not have the same type",
-      at
-    );
-  }
-
-  function mustAllHaveSameType(expressions, at) {
-    // Used to check the elements of an array expression, and the two
-    // arms of a conditional expression, among other scenarios.
-    must(
-      expressions
-        .slice(1)
-        .every((e) => equivalent(e.type, expressions[0].type)),
-      "Not all elements have the same type",
-      at
-    );
-  }
-
-  function mustBeAType(e, at) {
-    // This is a rather ugly hack
-    must(e?.kind.endsWith("Type"), "Type expected", at);
-  }
-
-  function mustBeAnArrayType(t, at) {
-    must(t?.kind === "ArrayType", "Must be an array type", at);
-  }
-
-  function includesAsField(structType, type) {
-    // Whether the struct type has a field of type type, directly or indirectly
-    return structType.fields.some(
-      (field) =>
-        field.type === type ||
-        (field.type?.kind === "StructType" && includesAsField(field.type, type))
-    );
-  }
-
-  function mustNotBeSelfContaining(structType, at) {
-    const containsSelf = includesAsField(structType, structType);
-    must(!containsSelf, "Struct type must not be self-containing", at);
-  }
-
-  function equivalent(t1, t2) {
-    return (
-      t1 === t2 ||
-      (t1?.kind === "OptionalType" &&
-        t2?.kind === "OptionalType" &&
-        equivalent(t1.baseType, t2.baseType)) ||
-      (t1?.kind === "ArrayType" &&
-        t2?.kind === "ArrayType" &&
-        equivalent(t1.baseType, t2.baseType)) ||
-      (t1?.kind === "FunctionType" &&
-        t2?.kind === "FunctionType" &&
-        equivalent(t1.returnType, t2.returnType) &&
-        t1.paramTypes.length === t2.paramTypes.length &&
-        t1.paramTypes.every((t, i) => equivalent(t, t2.paramTypes[i])))
-    );
-  }
-
-  function assignable(fromType, toType) {
-    return (
-      toType == ANY ||
-      equivalent(fromType, toType) ||
-      (fromType?.kind === "FunctionType" &&
-        toType?.kind === "FunctionType" &&
-        // covariant in return types
-        assignable(fromType.returnType, toType.returnType) &&
-        fromType.paramTypes.length === toType.paramTypes.length &&
-        // contravariant in parameter types
-        toType.paramTypes.every((t, i) =>
-          assignable(t, fromType.paramTypes[i])
-        ))
-    );
-  }
-
-  function typeDescription(type) {
-    switch (type.kind) {
-      case "IntType":
-        return "int";
-      case "FloatType":
-        return "float";
-      case "StringType":
-        return "string";
-      case "BoolType":
-        return "boolean";
-      case "VoidType":
-        return "void";
-      case "AnyType":
-        return "any";
-      case "StructType":
-        return type.name;
-      case "FunctionType":
-        const paramTypes = type.paramTypes.map(typeDescription).join(", ");
-        const returnType = typeDescription(type.returnType);
-        return `(${paramTypes})->${returnType}`;
-      case "ArrayType":
-        return `[${typeDescription(type.baseType)}]`;
-      case "OptionalType":
-        return `${typeDescription(type.baseType)}?`;
-    }
-  }
-
-  function mustBeAssignable(e, { toType: type }, at) {
-    const message = `Cannot assign a ${typeDescription(
-      e.type
-    )} to a ${typeDescription(type)}`;
-    must(assignable(e.type, type), message, at);
-  }
-
-  function mustNotBeReadOnly(e, at) {
-    must(!e.readOnly, `Cannot assign to constant ${e.name}`, at);
-  }
-
-  function mustHaveDistinctFields(type, at) {
-    const fieldNames = new Set(type.fields.map((f) => f.name));
-    must(fieldNames.size === type.fields.length, "Fields must be distinct", at);
-  }
-
-  function mustHaveMember(structType, field, at) {
-    must(
-      structType.fields.map((f) => f.name).includes(field),
-      "No such field",
-      at
-    );
   }
 
   function mustBeInLoop(at) {
@@ -256,22 +94,6 @@ export default function analyze(match) {
     must(callable, "Call of non-function or non-constructor", at);
   }
 
-  function mustNotReturnAnything(f, at) {
-    must(f.type.returnType === VOID, "Something should be returned", at);
-  }
-
-  function mustReturnSomething(f, at) {
-    must(
-      f.type.returnType !== VOID,
-      "Cannot return a value from this function",
-      at
-    );
-  }
-
-  function mustBeReturnable(e, { from: f }, at) {
-    mustBeAssignable(e, { toType: f.type.returnType }, at);
-  }
-
   function mustHaveCorrectArgumentCount(argCount, params, at) {
     let paramCount = 0;
     params.forEach((param) => {
@@ -282,7 +104,8 @@ export default function analyze(match) {
     must(argCount === paramCount, message, at);
   }
 
-  const builder = match.matcher.grammar.createSemantics().addOperation("rep", {
+  const semantics = match.matcher.grammar.createSemantics();
+  const builder = semantics.addOperation("rep", {
     Program(statements) {
       return core.program(statements.children.map((s) => s.rep()));
     },
@@ -306,9 +129,6 @@ export default function analyze(match) {
         //   );
         // });
         return core.callExpression(fun, argReps);
-      } else {
-        // Handle struct constructor calls if necessary
-        // ...
       }
     },
 
@@ -534,5 +354,84 @@ export default function analyze(match) {
     },
   });
 
-  return builder(match).rep();
+  analyze.builder = builder;
+
+  return {
+    semantics: semantics(match).rep(),
+    builder: builder,
+  };
+}
+
+export function mustBeAssignable(e, { toType: type }, at) {
+  const message = `Cannot assign a ${typeDescription(
+    e.type
+  )} to a ${typeDescription(type)}`;
+  must(assignable(e.type, type), message, at);
+}
+
+export function assignable(fromType, toType) {
+  return (
+    toType == ANY ||
+    equivalent(fromType, toType) ||
+    (fromType?.kind === "FunctionType" &&
+      toType?.kind === "FunctionType" &&
+      // covariant in return types
+      assignable(fromType.returnType, toType.returnType) &&
+      fromType.paramTypes.length === toType.paramTypes.length &&
+      // contravariant in parameter types
+      toType.paramTypes.every((t, i) => assignable(t, fromType.paramTypes[i])))
+  );
+}
+
+export function typeDescription(type) {
+  switch (type.kind) {
+    case "IntType":
+      return "int";
+    case "FloatType":
+      return "float";
+    case "StringType":
+      return "string";
+    case "BoolType":
+      return "boolean";
+    case "VoidType":
+      return "void";
+    case "AnyType":
+      return "any";
+    case "StructType":
+      return type.name;
+    case "FunctionType":
+      const paramTypes = type.paramTypes.map(typeDescription).join(", ");
+      const returnType = typeDescription(type.returnType);
+      return `(${paramTypes})->${returnType}`;
+    case "ArrayType":
+      return `[${typeDescription(type.baseType)}]`;
+    case "OptionalType":
+      return `${typeDescription(type.baseType)}?`;
+    default:
+      throw new Error(`Unhandled type: ${type.kind}`);
+  }
+}
+
+export function equivalent(t1, t2) {
+  return (
+    t1 === t2 ||
+    (t1?.kind === "OptionalType" &&
+      t2?.kind === "OptionalType" &&
+      equivalent(t1.baseType, t2.baseType)) ||
+    (t1?.kind === "ArrayType" &&
+      t2?.kind === "ArrayType" &&
+      equivalent(t1.baseType, t2.baseType)) ||
+    (t1?.kind === "FunctionType" &&
+      t2?.kind === "FunctionType" &&
+      equivalent(t1.returnType, t2.returnType) &&
+      t1.paramTypes.length === t2.paramTypes.length &&
+      t1.paramTypes.every((t, i) => equivalent(t, t2.paramTypes[i])))
+  );
+}
+
+export function must(condition, message, errorLocation) {
+  if (!condition) {
+    const prefix = errorLocation.at.source.getLineAndColumnMessage();
+    throw new Error(`${prefix}${message}`);
+  }
 }
