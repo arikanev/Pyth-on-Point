@@ -1,15 +1,10 @@
 import assert from "node:assert/strict";
-import optimize from "../src/optimizer.js";
+import optimize, { optimizers } from "../src/optimizer.js";
 import * as core from "../src/core.js";
 
 // Make some test cases easier to read
 const x = core.variable("x", false, core.intType);
 const loopBody = core.printStatement(x);
-const return1p1 = core.returnStatement(
-  core.binaryExpression("+", 1, 1, core.intType)
-);
-const return2 = core.returnStatement(2);
-const returnX = core.returnStatement(x);
 
 const tests = [
   ["folds +", core.binaryExpression("+", 5, 8), 13],
@@ -48,4 +43,27 @@ describe("The optimizer", () => {
       assert.deepEqual(optimize(before), after);
     });
   }
+});
+
+describe("The optimizer", () => {
+  tests.forEach(([scenario, before, after]) => {
+    it(scenario, () => {
+      assert.deepEqual(optimize(before), after);
+    });
+  });
+});
+
+describe("PredictiveLoop Optimization", () => {
+  it("should optimize a predictive loop", () => {
+    const loop = core.predictiveLoop({
+      iterator: core.variable("i", core.intType),
+      low: core.numberLiteral(10, core.intType),
+      high: core.numberLiteral(5, core.intType),
+      patternType: "prime",
+      body: [core.printStatement(core.variable("i", core.intType))],
+    });
+    const optimizedLoop = optimizers.PredictiveLoop(loop);
+    // You need to define what the expected output should be here
+    assert.deepEqual(optimizedLoop /* expected output */);
+  });
 });
